@@ -9,7 +9,7 @@ TRAIN_DATA_PATH = DATA_DIR / "raw" / "train.csv"
 TEST_DATA_PATH = DATA_DIR / "raw" / "test.csv"
 STORE_DATA_PATH = DATA_DIR / "raw" / "store.csv"
 
-MODEL_PATH = MODELS_DIR / "sales_model.keras"
+MODEL_PATH = MODELS_DIR / "model.pkl"
 PREPROCESSOR_PATH = ARTIFACTS_DIR / "preprocessor.pkl"
 FEATURE_MANIFEST_PATH = ARTIFACTS_DIR / "features.json"
 
