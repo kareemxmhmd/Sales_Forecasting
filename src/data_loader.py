@@ -1,5 +1,8 @@
 import pandas as pd
-from config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
+try:
+    from config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
+except ImportError:
+    from src.config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
 
 def load_data(
     train_path: str = TRAIN_DATA_PATH, 
@@ -21,5 +24,6 @@ def merge_store_data(data_df: pd.DataFrame, store_df: pd.DataFrame):
     print("Merged data shape:", merged_df.shape)
     return merged_df
 
-df = load_data()
-merged_store_df = merge_store_data(df[0], df[2])
+if __name__ == "__main__":
+    df = load_data()
+    merged_store_df = merge_store_data(df[0], df[2])
