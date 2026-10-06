@@ -28,7 +28,7 @@ def test_get_metadata():
     assert response.status_code == 200
     meta = response.json()
     assert "best_model" in meta
-    assert meta["best_model"] == "LGBMRegressor"
+    assert meta["best_model"] == "XGBRegressor"
     assert "all_metrics" in meta
     assert "feature_columns" in meta
     assert len(meta["feature_columns"]) == 35
@@ -40,6 +40,9 @@ def test_predict_validation_errors():
 
     resp_empty_data = client.post("/predict", json={"data": []})
     assert resp_empty_data.status_code == 400
+
+    resp_invalid_type = client.post("/predict", json={"data": [{"Store": "not_an_int", "Open": "maybe"}]})
+    assert resp_invalid_type.status_code == 422
 
 def test_predict_open_store_positive_sales():
     """Open store should yield positive sales within expected range."""

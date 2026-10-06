@@ -1,5 +1,5 @@
 {
-  "best_model": "LGBMRegressor",
+  "best_model": "XGBRegressor",
   "model_type": "sklearn",
   "model_file": "model.pkl",
   "feature_columns": [
@@ -43,20 +43,15 @@
   "horizon_days": 42,
   "validation_days": 42,
   "all_metrics": {
-    "LGBMRegressor": {
-      "mae": 549.9065,
-      "rmse": 757.8445,
-      "rmspe": 0.107
-    },
     "XGBRegressor": {
-      "mae": 548.819,
-      "rmse": 761.2701,
-      "rmspe": 0.108
+      "mae": 565.1268,
+      "rmse": 817.5131,
+      "rmspe": 0.1131
     },
-    "RandomForestRegressor": {
-      "mae": 574.2805,
-      "rmse": 816.0258,
-      "rmspe": 0.1124
+    "LGBMRegressor": {
+      "mae": 562.981,
+      "rmse": 820.4854,
+      "rmspe": 0.1139
     },
     "nn_mlp": {
       "mae": 655.4784,
@@ -64,14 +59,14 @@
       "rmspe": 0.1346
     },
     "Ridge": {
-      "mae": 822.2316,
-      "rmse": 1161.1821,
-      "rmspe": 0.1759
+      "mae": 959.5326,
+      "rmse": 1921.0957,
+      "rmspe": 0.2241
     },
     "SeasonalNaive_Lag7": {
-      "mae": 2169.4894,
-      "rmse": 2767.4129,
-      "rmspe": 0.4189
+      "mae": 2191.8725,
+      "rmse": 2830.1258,
+      "rmspe": 0.4102
     },
     "nn_embedding": {
       "mae": 5233.8126,
@@ -80,8 +75,8 @@
     }
   },
   "interval_metrics": {
-    "coverage": 0.6661,
-    "mean_width": 1376.74
+    "coverage": 0.7445,
+    "mean_width": 1593.63
   },
   "training_date_range": {
     "min": "2013-01-15",

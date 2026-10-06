@@ -80,6 +80,7 @@ app.add_middleware(
 )
 
 class StoreRecord(BaseModel):
+    model_config = ConfigDict(extra="allow")
     Store: int = Field(..., description="Unique Store ID")
     DayOfWeek: Optional[int] = Field(None, description="Day of week (1=Monday ... 7=Sunday)")
     Date: Optional[str] = Field(None, description="Date in YYYY-MM-DD format")
@@ -102,7 +103,7 @@ class StoreRecord(BaseModel):
     WeekOfYear: Optional[int] = Field(None, description="ISO calendar week")
 
 class PredictionRequest(BaseModel):
-    data: List[Dict[str, Any]] = Field(..., description="List of store records to forecast")
+    data: List[StoreRecord] = Field(..., description="List of store records to forecast")
 
 class SinglePrediction(BaseModel):
     store: int
@@ -133,7 +134,7 @@ async def health_check():
     return {
         "status": "healthy",
         "artifacts_loaded": True,
-        "model_name": metadata.get("best_model", "LGBMRegressor"),
+        "model_name": metadata.get("best_model", "XGBRegressor"),
         "model_type": metadata.get("model_type", "sklearn"),
         "target_transform": metadata.get("target_transform", "log1p"),
     }
@@ -219,7 +220,8 @@ async def predict(request: PredictionRequest):
 
     try:
         required_features = features_manifest["features"]
-        df = _prepare_dataframe(request.data, required_features)
+        raw_records = [item.model_dump() for item in request.data]
+        df = _prepare_dataframe(raw_records, required_features)
 
         # Check for non-operational store rows
         open_mask = df["Open"].astype(int) != 0
@@ -242,7 +244,7 @@ async def predict(request: PredictionRequest):
             p90[~open_mask] = 0.0
 
         results: List[SinglePrediction] = []
-        for i, row in df.iterrows():
+        for i, (_, row) in enumerate(df.iterrows()):
             store_id = int(row.get("Store", 0))
             date_str = str(row.get("Date")) if "Date" in row and pd.notna(row["Date"]) else None
             open_val = int(row.get("Open", 1))
@@ -259,7 +261,7 @@ async def predict(request: PredictionRequest):
         return PredictionResponse(
             predictions=[round(float(p), 2) for p in preds],
             results=results,
-            model_name=metadata.get("best_model", "LGBMRegressor"),
+            model_name=metadata.get("best_model", "XGBRegressor"),
         )
 
     except HTTPException:
