@@ -1,0 +1,20 @@
+{
+  "best_variant": "nn_mlp",
+  "metrics": {
+    "mae": 655.4784,
+    "rmse": 995.0274,
+    "rmspe": 0.1346
+  },
+  "all": {
+    "nn_mlp": {
+      "mae": 655.4784,
+      "rmse": 995.0274,
+      "rmspe": 0.1346
+    },
+    "nn_embedding": {
+      "mae": 5233.8126,
+      "rmse": 5804.9921,
+      "rmspe": 0.739
+    }
+  }
+}

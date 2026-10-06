@@ -1,0 +1,33 @@
+{
+  "best_model": "XGBRegressor",
+  "all": {
+    "Ridge": {
+      "mae": 959.5326,
+      "rmse": 1921.0957,
+      "rmspe": 0.2241
+    },
+    "XGBRegressor": {
+      "mae": 565.1268,
+      "rmse": 817.5131,
+      "rmspe": 0.1131
+    },
+    "LGBMRegressor": {
+      "mae": 562.981,
+      "rmse": 820.4854,
+      "rmspe": 0.1139
+    }
+  },
+  "baseline": {
+    "mae": 2191.8725,
+    "rmse": 2830.1258,
+    "rmspe": 0.4102
+  },
+  "interval": {
+    "coverage": 0.7445,
+    "mean_width": 1593.63
+  },
+  "training_date_range": {
+    "min": "2013-01-15",
+    "max": "2015-06-19"
+  }
+}

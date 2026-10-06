@@ -1,0 +1,90 @@
+{
+  "best_model": "LGBMRegressor",
+  "model_type": "sklearn",
+  "model_file": "model.pkl",
+  "feature_columns": [
+    "Open",
+    "Promo",
+    "CompetitionDistance",
+    "CompetitionOpenSinceMonth",
+    "CompetitionOpenSinceYear",
+    "Promo2",
+    "Promo2SinceWeek",
+    "Promo2SinceYear",
+    "Year",
+    "Month",
+    "Day",
+    "WeekOfYear",
+    "Sales_rolling_mean_7",
+    "Sales_rolling_std_7",
+    "Sales_lag_1",
+    "Sales_lag_2",
+    "Sales_lag_3",
+    "Sales_lag_4",
+    "Sales_lag_5",
+    "Sales_lag_6",
+    "Sales_lag_7",
+    "Sales_lag_8",
+    "Sales_lag_9",
+    "Sales_lag_10",
+    "Sales_lag_11",
+    "Sales_lag_12",
+    "Sales_lag_13",
+    "Sales_lag_14",
+    "Store",
+    "DayOfWeek",
+    "StoreType",
+    "Assortment",
+    "StateHoliday",
+    "SchoolHoliday",
+    "PromoInterval"
+  ],
+  "target_transform": "log1p",
+  "horizon_days": 42,
+  "validation_days": 42,
+  "all_metrics": {
+    "LGBMRegressor": {
+      "mae": 549.9065,
+      "rmse": 757.8445,
+      "rmspe": 0.107
+    },
+    "XGBRegressor": {
+      "mae": 548.819,
+      "rmse": 761.2701,
+      "rmspe": 0.108
+    },
+    "RandomForestRegressor": {
+      "mae": 574.2805,
+      "rmse": 816.0258,
+      "rmspe": 0.1124
+    },
+    "nn_mlp": {
+      "mae": 655.4784,
+      "rmse": 995.0274,
+      "rmspe": 0.1346
+    },
+    "Ridge": {
+      "mae": 822.2316,
+      "rmse": 1161.1821,
+      "rmspe": 0.1759
+    },
+    "SeasonalNaive_Lag7": {
+      "mae": 2169.4894,
+      "rmse": 2767.4129,
+      "rmspe": 0.4189
+    },
+    "nn_embedding": {
+      "mae": 5233.8126,
+      "rmse": 5804.9921,
+      "rmspe": 0.739
+    }
+  },
+  "interval_metrics": {
+    "coverage": 0.6661,
+    "mean_width": 1376.74
+  },
+  "training_date_range": {
+    "min": "2013-01-15",
+    "max": "2015-06-19"
+  }
+}
