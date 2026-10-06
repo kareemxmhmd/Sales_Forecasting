@@ -1,8 +1,5 @@
 import pandas as pd
-try:
-    from config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
-except ImportError:
-    from src.config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
+from config import TRAIN_DATA_PATH, TEST_DATA_PATH, STORE_DATA_PATH
 
 def load_data(
     train_path: str = TRAIN_DATA_PATH, 
