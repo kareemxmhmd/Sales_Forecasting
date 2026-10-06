@@ -115,7 +115,7 @@ def main():
     mlp_metrics = metrics(y_val_true, mlp_preds)
     print(f"nn_mlp -> MAE: {mlp_metrics['mae']:.2f}, RMSE: {mlp_metrics['rmse']:.2f}, RMSPE: {mlp_metrics['rmspe']:.4f}")
 
-    print("\n--- Candidate 2: Training nn_embedding (Entity Embeddings) ---")
+    print("\nCandidate 2: Training nn_embedding (Entity Embeddings) ---")
     nn_encoders = fit_label_encoders(train_df, categorical_cols)
     save_json(nn_encoders, NN_ENCODERS_PATH)
 
