@@ -37,6 +37,7 @@ htmlcov/
 !frontend/.env.example
 
 # Node / Frontend
+frontend/
 node_modules/
 .next/
 out/
