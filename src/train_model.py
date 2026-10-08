@@ -6,7 +6,7 @@ from lightgbm import LGBMRegressor
 
 from config import (
     BEST_MODEL_PATH, QUANTILE_MODELS_PATH, METRICS_ML_PATH,
-    FEATURE_COLUMNS_ML_PATH, TARGET
+    FEATURE_COLUMNS_ML_PATH, TARGET, PREPROCESSOR_PATH
 )
 from training_utils import (
     get_dataset, get_columns, time_split, leakage_report,
@@ -14,22 +14,33 @@ from training_utils import (
 )
 from preprocessing import build_and_save_preprocessor, apply_preprocessor
 
-def train_and_eval_ml(X_train, y_train_log, X_val, y_val_true):
+def train_and_eval_ml(X_train, y_train_log, val_df, train_df, preprocessor, feature_manifest):
+    from recursive_forecast import RecursiveForecaster
     models = {
         "Ridge": Ridge(alpha=1.0, random_state=42),
         "XGBRegressor": XGBRegressor(n_estimators=500, learning_rate=0.05, max_depth=8, random_state=42, n_jobs=-1),
         "LGBMRegressor": LGBMRegressor(n_estimators=500, learning_rate=0.05, num_leaves=63, random_state=42, n_jobs=-1, verbose=-1)
     }
 
+    # Extract historical sales from train_df to seed the recursive forecaster
+    historical_sales = {}
+    for store, group in train_df.groupby('Store'):
+        historical_sales[int(store)] = group['Sales'].tail(14).tolist()
+
     all_metrics = {}
     fitted_models = {}
+
+    y_val_true = val_df[TARGET].values
 
     for name, model in models.items():
         print(f"Training {name}...")
         model.fit(X_train, y_train_log)
-        preds_log = model.predict(X_val)
-        preds = np.expm1(preds_log)
-        preds = np.clip(preds, 0, None)
+        
+        print(f"Evaluating {name} recursively over 42 days...")
+        forecaster = RecursiveForecaster(model, preprocessor, feature_manifest)
+        val_preds_df = forecaster.forecast(val_df, historical_sales)
+        
+        preds = val_preds_df['Sales_Pred'].values
         score = metrics(y_val_true, preds)
         print(f"  {name} -> MAE: {score['mae']:.2f}, RMSE: {score['rmse']:.2f}, RMSPE: {score['rmspe']:.4f}")
         all_metrics[name] = score
@@ -95,7 +106,14 @@ def main():
     print(f"Baseline -> MAE: {baseline_metrics['mae']:.2f}, RMSE: {baseline_metrics['rmse']:.2f}, RMSPE: {baseline_metrics['rmspe']:.4f}")
 
     print("Training ML models...")
-    best_name, best_model, all_metrics = train_and_eval_ml(X_train, y_train_log, X_val, y_val_true)
+    # Load manifest explicitly since it was saved by build_and_save_preprocessor
+    import json
+    from config import FEATURE_MANIFEST_PATH
+    with open(FEATURE_MANIFEST_PATH, 'r') as f:
+        feature_manifest = json.load(f)
+    
+    preprocessor = joblib.load(PREPROCESSOR_PATH)
+    best_name, best_model, all_metrics = train_and_eval_ml(X_train, y_train_log, val_df, train_df, preprocessor, feature_manifest)
 
     print("Checking RMSPE leakage threshold across models...")
     leakage_report(train_df, val_df, feature_cols, model_metrics=all_metrics)
