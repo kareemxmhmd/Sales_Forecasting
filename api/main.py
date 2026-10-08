@@ -29,9 +29,10 @@ quantile_models = None
 preprocessor = None
 features_manifest = None
 metadata = {}
+historical_sales = {}
 
 def load_artifacts():
-    global model, quantile_models, preprocessor, features_manifest, metadata
+    global model, quantile_models, preprocessor, features_manifest, metadata, historical_sales
     try:
         if BEST_MODEL_PATH.exists():
             model = joblib.load(BEST_MODEL_PATH)
@@ -54,6 +55,14 @@ def load_artifacts():
             with open(METADATA_PATH, "r") as f:
                 metadata = json.load(f)
             print(f"Loaded metadata from {METADATA_PATH}")
+
+        hist_path = BASE_DIR / "artifacts" / "historical_sales.json"
+        if hist_path.exists():
+            with open(hist_path, "r") as f:
+                # Convert string keys back to int
+                raw_hist = json.load(f)
+                historical_sales.update({int(k): v for k, v in raw_hist.items()})
+            print(f"Loaded historical sales cache from {hist_path}")
 
     except Exception as e:
         print(f"Error loading model artifacts: {e}")
@@ -222,44 +231,37 @@ async def predict(request: PredictionRequest):
         required_features = features_manifest["features"]
         raw_records = [item.model_dump() for item in request.data]
         df = _prepare_dataframe(raw_records, required_features)
+        
+        # Make sure RecursiveForecaster can be imported
+        import sys
+        if str(BASE_DIR / "src") not in sys.path:
+            sys.path.insert(0, str(BASE_DIR / "src"))
+        from recursive_forecast import RecursiveForecaster
 
-        # Check for non-operational store rows
-        open_mask = df["Open"].astype(int) != 0
-
-        X = preprocessor.transform(df)
-
-        raw_preds = model.predict(X)
-        preds = np.clip(np.expm1(raw_preds), 0, None)
-        # Closed stores produce 0.0 sales
-        preds[~open_mask] = 0.0
-
-        p10 = None
-        p90 = None
-        if quantile_models and "q10" in quantile_models and "q90" in quantile_models:
-            raw_p10 = quantile_models["q10"].predict(X)
-            raw_p90 = quantile_models["q90"].predict(X)
-            p10 = np.clip(np.expm1(raw_p10), 0, None)
-            p90 = np.clip(np.expm1(raw_p90), 0, None)
-            p10[~open_mask] = 0.0
-            p90[~open_mask] = 0.0
-
+        forecaster = RecursiveForecaster(model, preprocessor, features_manifest, quantile_models=quantile_models)
+        preds_df = forecaster.forecast(df, historical_sales)
+        
         results: List[SinglePrediction] = []
-        for i, (_, row) in enumerate(df.iterrows()):
+        for i, row in preds_df.iterrows():
             store_id = int(row.get("Store", 0))
             date_str = str(row.get("Date")) if "Date" in row and pd.notna(row["Date"]) else None
             open_val = int(row.get("Open", 1))
+            
+            p10 = row.get("Sales_P10", None)
+            p90 = row.get("Sales_P90", None)
+            
             res = SinglePrediction(
                 store=store_id,
                 date=date_str,
-                prediction=round(float(preds[i]), 2),
-                prediction_interval_p10=round(float(p10[i]), 2) if p10 is not None else None,
-                prediction_interval_p90=round(float(p90[i]), 2) if p90 is not None else None,
+                prediction=round(float(row["Sales_Pred"]), 2),
+                prediction_interval_p10=round(float(p10), 2) if pd.notna(p10) and p10 is not None else None,
+                prediction_interval_p90=round(float(p90), 2) if pd.notna(p90) and p90 is not None else None,
                 open=open_val,
             )
             results.append(res)
 
         return PredictionResponse(
-            predictions=[round(float(p), 2) for p in preds],
+            predictions=[res.prediction for res in results],
             results=results,
             model_name=metadata.get("best_model", "XGBRegressor"),
         )
